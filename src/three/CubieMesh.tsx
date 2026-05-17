@@ -25,7 +25,7 @@ export function CubieMesh({ cubie, materials }: Props) {
       {!hidePieces && <mesh geometry={geometry} material={materials} />}
       {/* Piece chegaralari har doim ko'rinadi (real kub seam'lariga o'xshash) */}
       <lineSegments geometry={edgesGeometry}>
-        <lineBasicMaterial color={hidePieces ? '#888888' : '#0a0a0a'} linewidth={1} />
+        <lineBasicMaterial color={hidePieces ? '#888888' : '#0a0a0a'} linewidth={2} />
       </lineSegments>
     </group>
   )

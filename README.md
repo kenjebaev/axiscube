@@ -23,5 +23,3 @@ npm run build
 - `src/store/` — Zustand
 - `src/content/uz/` — o'zbekcha matnlar
 - `src/test/` — vitest
-
-Reja: `~/.claude/plans/cryptic-cooking-honey.md`
