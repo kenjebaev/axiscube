@@ -7,6 +7,7 @@ import type { Face, Modifier } from '@/cube/types'
 import { easeInOutCubic } from '@/lib/easing'
 import { CubieMesh } from './CubieMesh'
 import { makeMaterials } from './materials'
+import { useDragController } from './DragController'
 
 // Yurish burchagi (radian). Konvensiya moves.ts dan: + layer ka CW = -90°, - layer ka CW = +90°.
 function moveAngleRad(face: Face, modifier: Modifier): number {
@@ -67,8 +68,10 @@ export function AxisCubeMesh() {
     }
   })
 
+  const { onPointerDown } = useDragController()
+
   return (
-    <>
+    <group onPointerDown={onPointerDown}>
       {staticCubies.map((c) => (
         <CubieMesh key={c.id} cubie={c} materials={materials} />
       ))}
@@ -79,6 +82,6 @@ export function AxisCubeMesh() {
       </group>
       {/* axis ishlatilmaydi, lekin TypeScript noUnusedLocals uchun ref qilamiz */}
       <group visible={false} userData={{ axis }} />
-    </>
+    </group>
   )
 }
