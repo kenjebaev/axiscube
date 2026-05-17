@@ -5,7 +5,7 @@ import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js'
 import { LineSegments2 } from 'three/examples/jsm/lines/LineSegments2.js'
 import { LineSegmentsGeometry } from 'three/examples/jsm/lines/LineSegmentsGeometry.js'
 import type { Cubie } from '@/cube/types'
-import { orientationToQuaternion } from '@/lib/orientation'
+import { orientationToWorldQuaternion } from '@/lib/orientation'
 import { useDebugStore } from '@/store/debug'
 import { buildPieceGeometry } from './pieceGeometry'
 
@@ -61,7 +61,8 @@ export function CubieMesh({ cubie, materials }: Props) {
   const groupRef = useRef<Group>(null!)
 
   useEffect(() => {
-    if (groupRef.current) orientationToQuaternion(cubie.orientation, groupRef.current.quaternion)
+    if (groupRef.current)
+      orientationToWorldQuaternion(cubie.orientation, groupRef.current.quaternion)
   }, [cubie.orientation])
 
   return (

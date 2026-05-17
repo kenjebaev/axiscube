@@ -1,5 +1,5 @@
 import { useMemo, useRef } from 'react'
-import { Group } from 'three'
+import { Group, Vector3 } from 'three'
 import { useFrame } from '@react-three/fiber'
 import { useCubeStore } from '@/store/cube'
 import { useDebugStore } from '@/store/debug'
@@ -10,6 +10,7 @@ import { CubieMesh } from './CubieMesh'
 import { makeMaterials } from './materials'
 import { useDragController } from './DragController'
 import { CutPlanesViz } from './CutPlanesViz'
+import { NX, NY, NZ } from './cutPlanes'
 
 // Yurish burchagi (radian). Konvensiya moves.ts dan: + layer ka CW = -90°, - layer ka CW = +90°.
 function moveAngleRad(face: Face, modifier: Modifier): number {
@@ -19,6 +20,9 @@ function moveAngleRad(face: Face, modifier: Modifier): number {
   if (modifier === "'") return -baseSign * (Math.PI / 2)
   return baseSign * (Math.PI / 2)
 }
+
+// Label-frame axis (0=x, 1=y, 2=z) → world-frame rotation o'qi (n_X, n_Y, n_Z)
+const AXIS_VECTORS: Vector3[] = [NX, NY, NZ]
 
 export function AxisCubeMesh() {
   const innerHighlight = useDebugStore((s) => s.flags.innerHighlight)
@@ -41,21 +45,18 @@ export function AxisCubeMesh() {
   useFrame(() => {
     const cur = useCubeStore.getState().current
     if (!cur) {
-      if (groupRef.current) groupRef.current.rotation.set(0, 0, 0)
+      if (groupRef.current) groupRef.current.quaternion.set(0, 0, 0, 1)
       return
     }
     const now = performance.now()
     const tRaw = (now - cur.startedAt) / cur.duration
     const totalAngle = moveAngleRad(cur.move.face, cur.move.modifier)
     const info = FACE_INFO[cur.move.face]
+    const axisVec = AXIS_VECTORS[info.axis]
     if (tRaw >= 1) {
-      // Snap final state, keyin commit
+      // Snap final state, keyin commit (world-frame: n_X/n_Y/n_Z atrofida aylanish)
       if (groupRef.current) {
-        groupRef.current.rotation.set(
-          info.axis === 0 ? totalAngle : 0,
-          info.axis === 1 ? totalAngle : 0,
-          info.axis === 2 ? totalAngle : 0,
-        )
+        groupRef.current.quaternion.setFromAxisAngle(axisVec, totalAngle)
       }
       useCubeStore.getState().commitCurrent()
       return
@@ -63,11 +64,7 @@ export function AxisCubeMesh() {
     const eased = easeInOutCubic(tRaw)
     const angle = eased * totalAngle
     if (groupRef.current) {
-      groupRef.current.rotation.set(
-        info.axis === 0 ? angle : 0,
-        info.axis === 1 ? angle : 0,
-        info.axis === 2 ? angle : 0,
-      )
+      groupRef.current.quaternion.setFromAxisAngle(axisVec, angle)
     }
   })
 
