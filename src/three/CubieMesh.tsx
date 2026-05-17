@@ -12,9 +12,8 @@ interface Props {
 
 export function CubieMesh({ cubie, materials }: Props) {
   const geometry = useMemo(() => buildPieceGeometry(cubie.home).geometry, [cubie.home])
-  const edgesGeometry = useMemo(() => new EdgesGeometry(geometry, 15), [geometry])
+  const edgesGeometry = useMemo(() => new EdgesGeometry(geometry, 5), [geometry])
   const groupRef = useRef<Group>(null!)
-  const showEdges = useDebugStore((s) => s.flags.edges)
   const hidePieces = useDebugStore((s) => s.flags.hidePieces)
 
   useEffect(() => {
@@ -24,11 +23,10 @@ export function CubieMesh({ cubie, materials }: Props) {
   return (
     <group ref={groupRef}>
       {!hidePieces && <mesh geometry={geometry} material={materials} />}
-      {(showEdges || hidePieces) && (
-        <lineSegments geometry={edgesGeometry}>
-          <lineBasicMaterial color={hidePieces ? '#888888' : '#000000'} />
-        </lineSegments>
-      )}
+      {/* Piece chegaralari har doim ko'rinadi (real kub seam'lariga o'xshash) */}
+      <lineSegments geometry={edgesGeometry}>
+        <lineBasicMaterial color={hidePieces ? '#888888' : '#0a0a0a'} linewidth={1} />
+      </lineSegments>
     </group>
   )
 }

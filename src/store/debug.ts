@@ -1,7 +1,6 @@
 import { create } from 'zustand'
 
 export interface DebugFlags {
-  edges: boolean // har piece chegara chiziqlari (wireframe)
   cutPlanes: boolean // 6 ta kesim tekisligini ko'rsatish
   innerHighlight: boolean // ichki yuzlarni ajratib ko'rsatish (sariq)
   hidePieces: boolean // pieces'larni butunlay yashirish (faqat kesim tekisliklari ko'rinsin)
@@ -14,7 +13,6 @@ interface DebugStore {
 }
 
 const DEFAULT_FLAGS: DebugFlags = {
-  edges: false,
   cutPlanes: false,
   innerHighlight: false,
   hidePieces: false,

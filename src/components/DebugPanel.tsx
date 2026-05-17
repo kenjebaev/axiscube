@@ -1,10 +1,6 @@
 import { useDebugStore, type DebugFlags } from '@/store/debug'
 
 const LABELS: Record<keyof DebugFlags, { title: string; hint: string }> = {
-  edges: {
-    title: 'Chegara chiziqlari',
-    hint: "Har piece qirralarini chiziq bilan ko'rsatadi.",
-  },
   cutPlanes: {
     title: 'Kesim tekisliklari',
     hint: "6 ta aylantirilgan kesim tekisligini yarim shaffof ko'rsatadi (qizg'ish=NX, yashil=NY, ko'k=NZ).",
