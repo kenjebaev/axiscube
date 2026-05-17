@@ -1,19 +1,17 @@
 import { Canvas } from '@react-three/fiber'
 import { OrbitControls } from '@react-three/drei'
 import { AxisCubeMesh } from './three/AxisCubeMesh'
+import { ControlPanel } from './components/ControlPanel'
+import { UI } from './content/uz/ui'
 
 export default function App() {
   return (
-    <div className="min-h-screen flex flex-col">
-      <header className="border-b border-neutral-800 px-6 py-4">
-        <h1 className="text-2xl font-semibold tracking-tight">
-          Axis Cube
-          <span className="ml-2 text-neutral-400 font-normal text-base">
-            — simulyator va o'rgatuvchi
-          </span>
-        </h1>
+    <div className="h-screen flex flex-col">
+      <header className="border-b border-neutral-800 px-6 py-4 flex items-baseline gap-3">
+        <h1 className="text-2xl font-semibold tracking-tight">{UI.title}</h1>
+        <span className="text-neutral-400 font-normal text-base">— {UI.subtitle}</span>
       </header>
-      <main className="flex-1 grid grid-cols-[1fr_320px]">
+      <main className="flex-1 grid grid-cols-[1fr_340px] overflow-hidden">
         <section className="relative">
           <Canvas camera={{ position: [4, 4, 6], fov: 45 }} shadows>
             <color attach="background" args={['#0a0a0a']} />
@@ -29,16 +27,12 @@ export default function App() {
             <AxisCubeMesh />
             <OrbitControls enableDamping dampingFactor={0.08} />
           </Canvas>
-        </section>
-        <aside className="border-l border-neutral-800 p-4 space-y-3">
-          <h2 className="text-sm font-medium text-neutral-300">Boshqaruv paneli</h2>
-          <p className="text-xs text-neutral-500 leading-relaxed">
-            Hozircha solved holatdagi Axis Cube ko'rsatilmoqda. Scramble va solver
-            keyingi bosqichlarda qo'shiladi.
-          </p>
-          <div className="text-[11px] text-neutral-600 pt-2 border-t border-neutral-800">
-            Sichqoncha bilan kameraga aylantirib ko'ring.
+          <div className="absolute bottom-3 left-4 text-[11px] text-neutral-600 pointer-events-none">
+            {UI.hints.drag}
           </div>
+        </section>
+        <aside className="border-l border-neutral-800 p-4 overflow-y-auto">
+          <ControlPanel />
         </aside>
       </main>
     </div>
