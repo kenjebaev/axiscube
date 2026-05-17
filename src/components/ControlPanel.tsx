@@ -3,6 +3,8 @@ import { useCubeStore, type Speed } from '@/store/cube'
 import { parseMove, randomScramble } from '@/cube'
 import { UI } from '@/content/uz/ui'
 import { MoveList } from './MoveList'
+import { TutorialPanel } from './TutorialPanel'
+import { TUTORIAL_STAGES } from '@/content/uz/tutorial'
 
 const FACE_GROUPS: Array<{ face: 'U' | 'D' | 'L' | 'R' | 'F' | 'B'; label: string }> = [
   { face: 'U', label: 'Yuqori' },
@@ -29,6 +31,8 @@ export function ControlPanel() {
   const speed = useCubeStore((s) => s.speed)
   const setSpeed = useCubeStore((s) => s.setSpeed)
   const solveFromHistory = useCubeStore((s) => s.solveFromHistory)
+  const startTutorial = useCubeStore((s) => s.startTutorial)
+  const tutorialActive = useCubeStore((s) => !!s.tutorial)
   const undo = useCubeStore((s) => s.undo)
   const redo = useCubeStore((s) => s.redo)
   const historyLen = useCubeStore((s) => s.history.length)
@@ -36,6 +40,7 @@ export function ControlPanel() {
   const redoLen = useCubeStore((s) => s.redoStack.length)
   const busy = useCubeStore((s) => s.queue.length > 0 || !!s.current)
   const canSolve = historyLen > 0 && !busy
+  const canTutorial = historyLen > 0 && !busy && !tutorialActive
   const canUndo = undoLen > 0 && !busy
   const canRedo = redoLen > 0 && !busy
 
@@ -73,6 +78,14 @@ export function ControlPanel() {
           }
         >
           {UI.controls.solve}
+        </button>
+        <button
+          onClick={() => startTutorial(TUTORIAL_STAGES.length)}
+          disabled={!canTutorial}
+          className="w-full px-3 py-2 bg-purple-700 hover:bg-purple-600 active:bg-purple-800 text-white rounded font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+          title={tutorialActive ? 'Darslik allaqachon faol' : 'Yechishni bosqichma-bosqich kuzatish'}
+        >
+          {UI.controls.tutorial}
         </button>
         <button
           onClick={reset}
@@ -146,11 +159,18 @@ export function ControlPanel() {
         </div>
       </div>
 
+      {tutorialActive && (
+        <div className="pt-3 border-t border-neutral-800">
+          <TutorialPanel />
+        </div>
+      )}
+
       <div className="pt-3 border-t border-neutral-800">
         <MoveList />
       </div>
-      <div className="text-[11px] text-neutral-600 pt-2 border-t border-neutral-800">
-        {UI.controls.solverNote}
+      <div className="text-[11px] text-neutral-600 pt-2 border-t border-neutral-800 space-y-1">
+        <p>{UI.controls.solverNote}</p>
+        <p>{UI.controls.tutorialNote}</p>
       </div>
     </div>
   )

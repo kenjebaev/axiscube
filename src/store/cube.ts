@@ -28,6 +28,14 @@ interface UndoEntry {
   history: Move[]
 }
 
+export interface TutorialState {
+  active: boolean
+  stageIndex: number // 0..N-1
+  totalStages: number
+  stages: Move[][] // har bosqich uchun yurishlar
+  stageDone: boolean // joriy bosqich animatsiyasi tugadi, foydalanuvchi "Davom etish"ni kutmoqda
+}
+
 interface CubeStore {
   state: CubeState
   queue: Move[]
@@ -36,6 +44,7 @@ interface CubeStore {
   history: Move[] // solved holatdan boshlab qo'llanilgan barcha yurishlar
   undoStack: UndoEntry[]
   redoStack: UndoEntry[]
+  tutorial: TutorialState | null
   enqueue: (...moves: Move[]) => void
   enqueueMany: (moves: Move[]) => void
   setSpeed: (speed: Speed) => void
@@ -45,6 +54,9 @@ interface CubeStore {
   undo: () => void
   redo: () => void
   loadState: (state: CubeState) => void
+  startTutorial: (totalStages: number) => void
+  advanceTutorialStage: () => void
+  cancelTutorial: () => void
   _tryStart: () => void
 }
 
@@ -64,6 +76,7 @@ export const useCubeStore = create<CubeStore>((set, get) => ({
   history: [],
   undoStack: [],
   redoStack: [],
+  tutorial: null,
   enqueue: (...moves) => {
     set((s) => ({ queue: [...s.queue, ...moves] }))
     get()._tryStart()
@@ -74,7 +87,15 @@ export const useCubeStore = create<CubeStore>((set, get) => ({
   },
   setSpeed: (speed) => set({ speed }),
   reset: () =>
-    set({ state: solved(), queue: [], current: null, history: [], undoStack: [], redoStack: [] }),
+    set({
+      state: solved(),
+      queue: [],
+      current: null,
+      history: [],
+      undoStack: [],
+      redoStack: [],
+      tutorial: null,
+    }),
   _tryStart: () => {
     const { queue, current, speed, state, history, undoStack } = get()
     if (current || queue.length === 0) return
@@ -150,5 +171,53 @@ export const useCubeStore = create<CubeStore>((set, get) => ({
       history: [],
       undoStack: [],
       redoStack: [],
+      tutorial: null,
     }),
+  startTutorial: (totalStages) => {
+    const { history } = get()
+    if (history.length === 0) return
+    const inverse = inverseMoves(history)
+    // Yurishlarni totalStages ta taxminan teng bo'lakka ajratamiz
+    const stages: Move[][] = []
+    const baseSize = Math.floor(inverse.length / totalStages)
+    const remainder = inverse.length % totalStages
+    let offset = 0
+    for (let i = 0; i < totalStages; i++) {
+      const size = baseSize + (i < remainder ? 1 : 0)
+      stages.push(inverse.slice(offset, offset + size))
+      offset += size
+    }
+    // Bo'sh bosqichlarni o'tkazib yuborish
+    const filtered = stages.filter((s) => s.length > 0)
+    if (filtered.length === 0) return
+    set({
+      tutorial: {
+        active: true,
+        stageIndex: 0,
+        totalStages: filtered.length,
+        stages: filtered,
+        stageDone: false,
+      },
+    })
+    // Birinchi bosqichni navbatga qo'yamiz
+    get().enqueueMany(filtered[0])
+  },
+  advanceTutorialStage: () => {
+    const { tutorial, current, queue } = get()
+    if (!tutorial || current || queue.length > 0) return
+    const next = tutorial.stageIndex + 1
+    if (next >= tutorial.totalStages) {
+      // Darslik tugadi
+      set({ tutorial: null })
+      return
+    }
+    set({
+      tutorial: { ...tutorial, stageIndex: next, stageDone: false },
+    })
+    get().enqueueMany(tutorial.stages[next])
+  },
+  cancelTutorial: () => set({ tutorial: null }),
 }))
+
+// Tutorial stageDone'ni avtomatik belgilash: queue va current bo'shasagina.
+// Bu Zustand subscribe'ni komponentda ishlatamiz. Hozir UI'da ishlatiladi.

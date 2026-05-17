@@ -20,6 +20,9 @@ export const UI = {
     queueLabel: 'Navbatda',
     solverNote:
       "MVP yechuvchi: tarix bo'yicha teskari yurishlarni qo'llaydi. Bosqichli LBL solver keyingi versiyalarda.",
+    tutorial: 'Darslikni boshlash',
+    tutorialNote:
+      "Darslik LBL bosqichlarini taqdim etadi (matn ta'limli). Yurishlar avtomatik bajariladi, har bosqichdan keyin pauza.",
   },
   hints: {
     drag: 'Sichqoncha bilan kameraga aylantirib boqing.',
