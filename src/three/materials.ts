@@ -15,13 +15,15 @@ const STICKER_FOR_FACE = {
   '-Z': STICKER_COLORS.B,
 } as const
 
-export function makeMaterials(): MeshStandardMaterial[] {
+export function makeMaterials(innerHighlight = false): MeshStandardMaterial[] {
   return MATERIAL_GROUPS.map(
     (key) =>
       new MeshStandardMaterial({
-        color: STICKER_FOR_FACE[key],
+        color: key === 'INNER' && innerHighlight ? '#fbbf24' : STICKER_FOR_FACE[key],
         roughness: 0.5,
         metalness: 0.0,
+        emissive: key === 'INNER' && innerHighlight ? '#fbbf24' : '#000000',
+        emissiveIntensity: key === 'INNER' && innerHighlight ? 0.2 : 0,
       }),
   )
 }

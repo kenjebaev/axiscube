@@ -4,6 +4,7 @@ import { parseMove, randomScramble } from '@/cube'
 import { UI } from '@/content/uz/ui'
 import { MoveList } from './MoveList'
 import { TutorialPanel } from './TutorialPanel'
+import { DebugPanel } from './DebugPanel'
 import { TUTORIAL_STAGES } from '@/content/uz/tutorial'
 
 const FACE_GROUPS: Array<{ face: 'U' | 'D' | 'L' | 'R' | 'F' | 'B'; label: string }> = [
@@ -164,6 +165,10 @@ export function ControlPanel() {
           <TutorialPanel />
         </div>
       )}
+
+      <div className="pt-3 border-t border-neutral-800">
+        <DebugPanel />
+      </div>
 
       <div className="pt-3 border-t border-neutral-800">
         <MoveList />

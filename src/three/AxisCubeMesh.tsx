@@ -2,12 +2,14 @@ import { useMemo, useRef } from 'react'
 import { Group } from 'three'
 import { useFrame } from '@react-three/fiber'
 import { useCubeStore } from '@/store/cube'
+import { useDebugStore } from '@/store/debug'
 import { FACE_INFO } from '@/cube/moves'
 import type { Face, Modifier } from '@/cube/types'
 import { easeInOutCubic } from '@/lib/easing'
 import { CubieMesh } from './CubieMesh'
 import { makeMaterials } from './materials'
 import { useDragController } from './DragController'
+import { CutPlanesViz } from './CutPlanesViz'
 
 // Yurish burchagi (radian). Konvensiya moves.ts dan: + layer ka CW = -90°, - layer ka CW = +90°.
 function moveAngleRad(face: Face, modifier: Modifier): number {
@@ -19,7 +21,8 @@ function moveAngleRad(face: Face, modifier: Modifier): number {
 }
 
 export function AxisCubeMesh() {
-  const materials = useMemo(() => makeMaterials(), [])
+  const innerHighlight = useDebugStore((s) => s.flags.innerHighlight)
+  const materials = useMemo(() => makeMaterials(innerHighlight), [innerHighlight])
   const cubies = useCubeStore((s) => s.state.cubies)
   const current = useCubeStore((s) => s.current)
 
@@ -69,6 +72,7 @@ export function AxisCubeMesh() {
   })
 
   const { onPointerDown } = useDragController()
+  const showCutPlanes = useDebugStore((s) => s.flags.cutPlanes)
 
   return (
     <group onPointerDown={onPointerDown}>
@@ -80,6 +84,7 @@ export function AxisCubeMesh() {
           <CubieMesh key={c.id} cubie={c} materials={materials} />
         ))}
       </group>
+      {showCutPlanes && <CutPlanesViz />}
       {/* axis ishlatilmaydi, lekin TypeScript noUnusedLocals uchun ref qilamiz */}
       <group visible={false} userData={{ axis }} />
     </group>
