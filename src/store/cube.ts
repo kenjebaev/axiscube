@@ -23,19 +23,37 @@ export interface AnimationInfo {
   duration: number
 }
 
+interface UndoEntry {
+  state: CubeState
+  history: Move[]
+}
+
 interface CubeStore {
   state: CubeState
   queue: Move[]
   current: AnimationInfo | null
   speed: Speed
   history: Move[] // solved holatdan boshlab qo'llanilgan barcha yurishlar
+  undoStack: UndoEntry[]
+  redoStack: UndoEntry[]
   enqueue: (...moves: Move[]) => void
   enqueueMany: (moves: Move[]) => void
   setSpeed: (speed: Speed) => void
   reset: () => void
   commitCurrent: () => void
   solveFromHistory: () => void
+  undo: () => void
+  redo: () => void
+  loadState: (state: CubeState) => void
   _tryStart: () => void
+}
+
+const MAX_UNDO = 500
+
+function pushBounded(stack: UndoEntry[], entry: UndoEntry): UndoEntry[] {
+  const next = [...stack, entry]
+  if (next.length > MAX_UNDO) next.shift()
+  return next
 }
 
 export const useCubeStore = create<CubeStore>((set, get) => ({
@@ -44,6 +62,8 @@ export const useCubeStore = create<CubeStore>((set, get) => ({
   current: null,
   speed: 'normal',
   history: [],
+  undoStack: [],
+  redoStack: [],
   enqueue: (...moves) => {
     set((s) => ({ queue: [...s.queue, ...moves] }))
     get()._tryStart()
@@ -53,16 +73,23 @@ export const useCubeStore = create<CubeStore>((set, get) => ({
     get()._tryStart()
   },
   setSpeed: (speed) => set({ speed }),
-  reset: () => set({ state: solved(), queue: [], current: null, history: [] }),
+  reset: () =>
+    set({ state: solved(), queue: [], current: null, history: [], undoStack: [], redoStack: [] }),
   _tryStart: () => {
-    const { queue, current, speed, state, history } = get()
+    const { queue, current, speed, state, history, undoStack } = get()
     if (current || queue.length === 0) return
     const [next, ...rest] = queue
     const duration = SPEED_MS[speed]
     if (duration === 0) {
       const newState = applyMove(state, next)
       const newHistory = isSolved(newState) ? [] : [...history, next]
-      set({ state: newState, queue: rest, history: newHistory })
+      set({
+        state: newState,
+        queue: rest,
+        history: newHistory,
+        undoStack: pushBounded(undoStack, { state, history }),
+        redoStack: [],
+      })
       get()._tryStart()
     } else {
       set({
@@ -72,11 +99,17 @@ export const useCubeStore = create<CubeStore>((set, get) => ({
     }
   },
   commitCurrent: () => {
-    const { current, state, history } = get()
+    const { current, state, history, undoStack } = get()
     if (!current) return
     const newState = applyMove(state, current.move)
     const newHistory = isSolved(newState) ? [] : [...history, current.move]
-    set({ state: newState, current: null, history: newHistory })
+    set({
+      state: newState,
+      current: null,
+      history: newHistory,
+      undoStack: pushBounded(undoStack, { state, history }),
+      redoStack: [],
+    })
     get()._tryStart()
   },
   solveFromHistory: () => {
@@ -85,4 +118,37 @@ export const useCubeStore = create<CubeStore>((set, get) => ({
     if (history.length === 0) return
     get().enqueueMany(inverseMoves(history))
   },
+  undo: () => {
+    const { undoStack, state, history, current, queue } = get()
+    if (current || queue.length > 0 || undoStack.length === 0) return
+    const prev = undoStack[undoStack.length - 1]
+    const newUndo = undoStack.slice(0, -1)
+    set({
+      state: prev.state,
+      history: prev.history,
+      undoStack: newUndo,
+      redoStack: pushBounded(get().redoStack, { state, history }),
+    })
+  },
+  redo: () => {
+    const { redoStack, state, history, current, queue } = get()
+    if (current || queue.length > 0 || redoStack.length === 0) return
+    const next = redoStack[redoStack.length - 1]
+    const newRedo = redoStack.slice(0, -1)
+    set({
+      state: next.state,
+      history: next.history,
+      undoStack: pushBounded(get().undoStack, { state, history }),
+      redoStack: newRedo,
+    })
+  },
+  loadState: (state) =>
+    set({
+      state,
+      queue: [],
+      current: null,
+      history: [],
+      undoStack: [],
+      redoStack: [],
+    }),
 }))

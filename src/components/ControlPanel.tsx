@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useCubeStore, type Speed } from '@/store/cube'
 import { parseMove, randomScramble } from '@/cube'
 import { UI } from '@/content/uz/ui'
@@ -28,9 +29,26 @@ export function ControlPanel() {
   const speed = useCubeStore((s) => s.speed)
   const setSpeed = useCubeStore((s) => s.setSpeed)
   const solveFromHistory = useCubeStore((s) => s.solveFromHistory)
+  const undo = useCubeStore((s) => s.undo)
+  const redo = useCubeStore((s) => s.redo)
   const historyLen = useCubeStore((s) => s.history.length)
+  const undoLen = useCubeStore((s) => s.undoStack.length)
+  const redoLen = useCubeStore((s) => s.redoStack.length)
   const busy = useCubeStore((s) => s.queue.length > 0 || !!s.current)
   const canSolve = historyLen > 0 && !busy
+  const canUndo = undoLen > 0 && !busy
+  const canRedo = redoLen > 0 && !busy
+
+  const [shareMsg, setShareMsg] = useState<string | null>(null)
+  const handleShare = async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href)
+      setShareMsg(UI.controls.shareCopied)
+    } catch {
+      setShareMsg(UI.controls.shareFailed)
+    }
+    window.setTimeout(() => setShareMsg(null), 2000)
+  }
 
   return (
     <div className="space-y-4 text-sm">
@@ -61,6 +79,30 @@ export function ControlPanel() {
           className="w-full px-3 py-2 bg-neutral-800 hover:bg-neutral-700 active:bg-neutral-900 text-neutral-200 rounded transition-colors"
         >
           {UI.controls.reset}
+        </button>
+        <div className="grid grid-cols-2 gap-2">
+          <button
+            onClick={undo}
+            disabled={!canUndo}
+            className="px-2 py-1.5 bg-neutral-800 hover:bg-neutral-700 text-neutral-200 rounded text-xs transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            title={canUndo ? `${undoLen} ta qadam` : 'Orqaga qaytadigan qadam yo\'q'}
+          >
+            ← {UI.controls.undo}
+          </button>
+          <button
+            onClick={redo}
+            disabled={!canRedo}
+            className="px-2 py-1.5 bg-neutral-800 hover:bg-neutral-700 text-neutral-200 rounded text-xs transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            title={canRedo ? `${redoLen} ta qadam` : 'Oldinga yo\'l yo\'q'}
+          >
+            {UI.controls.redo} →
+          </button>
+        </div>
+        <button
+          onClick={handleShare}
+          className="w-full px-3 py-1.5 bg-neutral-800 hover:bg-neutral-700 text-neutral-200 rounded text-xs transition-colors"
+        >
+          {shareMsg ?? UI.controls.share}
         </button>
       </div>
 

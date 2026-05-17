@@ -3,8 +3,10 @@ import { OrbitControls } from '@react-three/drei'
 import { AxisCubeMesh } from './three/AxisCubeMesh'
 import { ControlPanel } from './components/ControlPanel'
 import { UI } from './content/uz/ui'
+import { useUrlSync } from './hooks/useUrlSync'
 
 export default function App() {
+  useUrlSync()
   return (
     <div className="h-screen flex flex-col">
       <header className="border-b border-neutral-800 px-6 py-4 flex items-baseline gap-3">
